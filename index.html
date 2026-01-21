@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAUT iPad Compatibility Finder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .highlight { background-color: #fef3c7; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9fafb; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">iPad Compatibility Matrix</h1>
+            <p class="text-gray-600">Search by Model Name, Model Number (e.g., A2993), or Case Type.</p>
+        </header>
+
+        <div class="sticky top-4 z-10 mb-6">
+            <div class="relative shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input type="text" id="searchInput" 
+                    class="block w-full pl-10 pr-3 py-4 border-2 border-blue-500 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent sm:text-lg transition-all" 
+                    placeholder="Type to search iPad models or model numbers...">
+            </div>
+            <div id="resultsCount" class="mt-2 text-sm text-gray-500 italic">Showing all models</div>
+        </div>
+
+        <div class="bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="compatibilityTable">
+                    <thead class="bg-gray-800 text-white">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">iPad Model</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Model Number</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Compatible Case(s)</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Connector</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Cables/Screen Protectors</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200" id="tableBody">
+                        </tbody>
+                </table>
+            </div>
+            <div id="noResults" class="hidden p-10 text-center text-gray-500">
+                No matching models found. Try searching for a specific model number like "A2126".
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const data = [
+            { model: "iPad mini", numbers: "A1432, A1454, A1455", cases: "PROFOLIO, TRIFOLIO, R•EVOLVE, Little BUDDY", connector: "Lightning", extra: "Cable, Screen Protector, Tablet Stand" },
+            { model: "iPad mini 2", numbers: "A1489, A1490, A1491", cases: "PROFOLIO, TRIFOLIO, R•EVOLVE, Little BUDDY", connector: "Lightning", extra: "Cable, Screen Protector, Tablet Stand" },
+            { model: "iPad mini 3", numbers: "A1599, A1600", cases: "PROFOLIO, TRIFOLIO, R•EVOLVE, Little BUDDY", connector: "Lightning", extra: "Cable, Screen Protector, Tablet Stand" },
+            { model: "iPad mini 4", numbers: "A1538, A1550", cases: "PROFOLIO, TRIFOLIO, R•EVOLVE, Little BUDDY", connector: "Lightning", extra: "Cable, Screen Protector, Tablet Stand" },
+            { model: "iPad mini 5", numbers: "A2126, A2124, A2133, A2125", cases: "PROFOLIO, TRIFOLIO, PRESTIGE, HUEX, Little BUDDY", connector: "Lightning", extra: "Cable, Screen Protector, Tablet Stand" },
+            { model: "iPad mini 6", numbers: "A2567, A2568, A2569", cases: "PRESTIGE Folio, HUEX FOLIO", connector: "Lightning", extra: "Cable, Screen Protector, Tablet Stand" },
+            { model: "iPad mini 7", numbers: "A2993, A2995, A2996", cases: "HUEX FOLIO Versatile, PRESTIGE Folio", connector: "Type-C", extra: "Cable, Screen Protector, Tablet Stand" },
+            { model: "iPad (1st Gen)", numbers: "A1219, A1337", cases: "N/A", connector: "30-pin", extra: "None available" },
+            { model: "iPad 10.2-inch (9th gen)", numbers: "A2603, A2604", cases: "HUEX, HUEX Folio, PRESTIGE, SHIELD ENDURO", connector: "Lightning", extra: "Cable, Screen Protector, Tablet Stand" },
+            { model: "iPad 10.9-inch (10th gen)", numbers: "A2757, A2777, A2696", cases: "HUEX FOLIO, PRESTIGE FOLIO MG, SHIELD ENDURO", connector: "Type-C", extra: "Cable, Screen Protector, Tablet Stand" },
+            { model: "iPad Air 11-inch (2024)", numbers: "A2902, A2899, A2900", cases: "HUEX Folio, PRESTIGE, Zuro Folio, TYPEFOLIO", connector: "Type-C", extra: "Cable, Screen Protector, Tablet Stand" },
+            { model: "iPad Pro 11-inch (2024)", numbers: "A2836, A2837, A3006", cases: "HUEX FOLIO, PRESTIGE FOLIO MG, Zuro Folio", connector: "Type-C", extra: "Cable, Screen Protector, Tablet Stand" },
+            { model: "iPad Pro 13-inch (2024)", numbers: "A2925, A2926, A3007", cases: "HUEX FOLIO, PRESTIGE FOLIO MG", connector: "Type-C", extra: "Cable, Screen Protector, Tablet Stand" }
+            // ... add other rows following this pattern
+        ];
+
+        const tableBody = document.getElementById('tableBody');
+        const searchInput = document.getElementById('searchInput');
+        const noResults = document.getElementById('noResults');
+        const resultsCount = document.getElementById('resultsCount');
+
+        function renderTable(filter = '') {
+            const filteredData = data.filter(item => 
+                item.model.toLowerCase().includes(filter.toLowerCase()) || 
+                item.numbers.toLowerCase().includes(filter.toLowerCase()) ||
+                item.cases.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            tableBody.innerHTML = '';
+            
+            if (filteredData.length === 0) {
+                noResults.classList.remove('hidden');
+                resultsCount.textContent = '0 matches found';
+            } else {
+                noResults.classList.add('hidden');
+                resultsCount.textContent = `Showing ${filteredData.length} models`;
+                
+                filteredData.forEach(item => {
+                    const row = `
+                        <tr class="hover:bg-blue-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.model}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-mono">${item.numbers}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">${item.cases}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.connector}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">${item.extra}</td>
+                        </tr>
+                    `;
+                    tableBody.insertAdjacentHTML('beforeend', row);
+                });
+            }
+        }
+
+        // Initialize table
+        renderTable();
+
+        // Search Event (Simulation of AJAX logic)
+        searchInput.addEventListener('input', (e) => {
+            renderTable(e.target.value);
+        });
+    </script>
+</body>
+</html>
